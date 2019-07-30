@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Cofing 3.9//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace命名空间，作用是对sql进行分类化管理，可以理解为sql隔离
+注意：使用mapper代理方法开发，namespace有其他特殊重要作用
+-->
+<mapper namespace="cn.bao.mybatis.mapper.OrdersMapperCustom">
+    <resultMap id="OrderUserResultMap" type="orders">
+        <id column="oid" property="oid"/>
+        <result column="ordertime" property="orderTime"/>
+        <result column="total" property="total"/>
+        <result column="state" property="state"/>
+        <result column="uid" property="uid"/>
+        <result column="address" property="address"/>
+        <association property="user" javaType="user">
+            <id column="uid" property="uid"/>
+            <result column="username" property="username"/>
+            <result column="password" property="password"/>
+            <result column="email" property="email"/>
+            <result column="code" property="code"/>
+            <result column="state" property="state"/>
+        </association>
+    </resultMap>
+    
+    <resultMap id="OrderUserAndDetailResultMap" type="orders" extends="OrderUserResultMap">
+        <collection property="orderItem" ofType="orderItem">
+            <id column="iid" property="iid"/>
+            <result column="count" property="count"/>
+            <result column="subtotal " property="password"/>
+            <result column="oid" property="oid"/>
+            <result column="bid" property="bid"/>
+        </collection>
+    </resultMap>
+    <select id="findOrdersUser" resultType="ordersCustom">
+        select orders.* ,tb_user.username,tb_user.password,tb_user.email,tb_user.code,tb_user.state
+        from orders,tb_user
+        where orders.uid=tb_user.uid
+    </select>
+
+    <select id="findOrdersUserResultMap" resultMap="OrderUserResultMap">
+        select orders.* ,tb_user.username,tb_user.password,tb_user.email,tb_user.code,tb_user.state
+        from orders,tb_user
+        where orders.uid=tb_user.uid
+    </select>
+
+    <select id="findOrdersUserAndDetailResultMap" resultMap="OrderUserAndDetailResultMap">
+        select orders.* ,
+        tb_user.username,tb_user.password,tb_user.email,tb_user.code,tb_user.state,
+        orderitem.iid,orderitem.count,orderitem.subtotal
+        from orders,tb_user,orderitem
+        where orders.uid=tb_user.uid and orderitem.oid=orders.oid
+    </select>
+
+</mapper>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Cofing 3.9//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace命名空间，作用是对sql进行分类化管理，可以理解为sql隔离
+注意：使用mapper代理方法开发，namespace有其他特殊重要作用
+-->
+<mapper namespace="cn.bao.mybatis.mapper.BookMapper">
+    <!--
+    type:resultMap最终映射的Java对象类型，可以使用别名
+    id:对resultMap的唯一标识
+    -->
+    <resultMap id="bookResultMap" type="book">
+        <!--
+        id表示查询的结果集中唯一标识（含主键的列）
+        column：查询出来的列名
+        最终resultMap对column和property作为映射关系（对应关系）
+        -->
+        <id column="bid_" property="bid"/>
+        <!--
+        result对普通名进行映射
+        column：查询出来的列名
+        最终resultMap对column和property作为映射关系（对应关系）
+        -->
+        <result column="bname_" property="bname"/>
+    </resultMap>
+
+    <sql id="query_book_where">
+        <if test="bookCostom!=null">
+            <if test="bookCostom.bname!=null">
+                book.bname=#{bookCostom.bname}
+            </if>
+            <if test="bookCostom.author!=null">
+                AND book.author LIKE '%${bookCostom.author}%'
+            </if>
+        </if>
+    </sql>
+
+    <select id="findBookByIdResultMap" parameterType="String" resultMap="bookResultMap">
+        SELECT bid bid_,bname bname_ FROM book WHERE bid =#{value}
+    </select>
+    <select id="findBookList" parameterType="bookQueryVo"
+            resultType="bookCostom">
+        SELECT * FROM book WHERE book.bname =#{bookCostom.bname} AND book.author LIKE '%${bookCostom.author}%'
+    </select>
+
+    <select id="findBookCount" parameterType="bookQueryVo" resultType="int">
+        SELECT count(*) FROM book
+           <where>
+               <include refid="query_book_where"></include>
+           </where>
+    </select>
+
+    <!--id标识映射文件中的sql语句
+    将sql语句封装到mapperStatement对象中，所以这个id可以称为Statement的id
+    parameterType：指定输入参数的类型
+    #{}表示一个占位符
+    resultType：指定sql输出结果的映射的java对象类型
+    -->
+    <select id="findBookByBid" parameterType="String" resultType="book">
+        SELECT * FROM book WHERE bid =#{bid}
+    </select>
+    <!--
+    根据图书作者模糊查询用户信息，可能返回多条数据
+    resultType:指定用户单条记录所映射的Java对象类型
+    使用${}：表示拼接sql串，将接受到参数的内容不加任何修饰的拼接在sql中
+    ${value}：接受输入参数的内容，如果传入类型是简单类型，${}中只能是value
+    -->
+    <select id="findBookByName" parameterType="String" resultType="book">
+        SELECT * FROM book WHERE author LIKE '%${value}%'
+    </select>
+    <!--添加用户
+    parameterType：指定输入参数类型是Book（包括图书信息）
+    #{}中指定Book属性名，接受Book对象的属性值，mybatis通过OGNL获取对象的属性值
+    -->
+    <insert id="insertBook" parameterType="book">
+        INSERT INTO book(bid,bname,price,author,image,cid) VALUE (#{bid},#{bname},#{price},#{author},#{image},#{cid})
+    </insert>
+</mapper>
